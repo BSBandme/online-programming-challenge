@@ -198,101 +198,42 @@ void output2(t arr) {
 
 //....................密..........封..........线..........下..........禁..........止..........hack...............................................
 
-const int mod = MOD;
-const int maxn = 10010;
-char str[maxn];
+const int maxn = 100100;
+char in[maxn];
 int n;
-int orig[20];
-ll dp[500][1 << 16];
-ll rdp2[1 << 16], rdp1[1 << 16];
+int anscnt = MOD;
+int ans[maxn];
 
-void dfs(int a, int b) {
-	if(a == b) {
-		if(str[a] == '?') {
-			for(int i = 0; i < 4; i++) for(int cate = 0; cate < 2; cate++){
-				int ans = 0;
-				for(int j = 15; j >= 0; j--) {
-					ans = ans << 1;
-					int p = bool(j & (1 << i));
-					p ^= cate;
-					ans += p;
-				}
-				dp[a][ans]++;
-			}
+
+void justdoit() {
+	int ranscnt = 0;
+	int rans[maxn];
+	set <int> s[2];
+	for(int i = 0; i < n; i++) {
+		if(in[i] == 'R') s[1].insert(i);
+		else s[0].insert(i);
+	}
+	for(int st = -1, cate = 0, i = 0; s[0].size() || s[1].size(); cate = 1 - cate, i++){
+		auto it = s[cate].lower_bound(st);
+		if(it == s[cate].end()) {
+			st = -1;
+			it = s[cate].lower_bound(st);
+			ranscnt++;
 		} else {
-			int cate, i;
-			if(str[a] >= 'a') {
-				cate = 1;
-				i = str[a] - 'a';
-			} else {
-				cate = 0;
-				i = str[a] - 'A';
-			}
-			int ans = 0;
-			for(int j = 15; j >= 0; j--) {
-				ans = ans << 1;
-				int p = bool(j & (1 << i));
-				p ^= cate;
-				ans += p;
-			}
-			dp[a][ans]++;
-		}
-	} else {
-		int fen = 0, loc;
-		for(int j = a; j < b; j++) {
-			if(str[j] == '(')
-				fen++;
-			if(str[j] == ')')
-				fen--;
-			if(fen == 0) {
-				loc = j + 1;
-				break;
+			auto rit = s[1 - cate].lower_bound(*it + 1);
+			if(rit == s[1 - cate].end() && s[1-cate].size() && s[cate].size() && *s[1 - cate].begin() > *s[cate].begin()) {
+				ranscnt++;
+				st = -1;
+				it = s[cate].lower_bound(st);
 			}
 		}
-		dfs(a + 1, loc - 2);
-		dfs(loc + 2, b - 1);
-		if(str[loc] != '|') {
-			memcpy(rdp1, dp[a + 1], sizeof(rdp1));
-			memcpy(rdp2, dp[loc + 2], sizeof(rdp2));
-			for(int i = 0; i < 16; i++) {
-				for(int j = 0; j < 1 << 16; j++) if(j & (1 << i)){
-					add(rdp1[j ^ (1 << i)], rdp1[j]);
-					add(rdp2[j ^ (1 << i)], rdp2[j]);
-				}
-			}
-			for(int j = 0; j < 1 << 16; j++) {
-				rdp1[j] *= rdp2[j];
-				rdp1[j] %= mod;
-			}
-			for(int i = 0; i < 16; i++) {
-				for(int j = 0; j < 1 << 16; j++) if(j & (1 << i)){
-					add(rdp1[j ^ (1 << i)], mod - rdp1[j]);
-				}
-			}
-			for(int j = 0; j < 1 << 16; j++)
-				dp[a][j] = rdp1[j];
-		}
-		if(str[loc] != '&') {
-			memcpy(rdp1, dp[a + 1], sizeof(rdp1));
-			memcpy(rdp2, dp[loc + 2], sizeof(rdp2));
-			for(int i = 0; i < 16; i++) {
-				for(int j = 0; j < 1 << 16; j++) if(!(j & (1 << i))){
-					add(rdp1[j ^ (1 << i)], rdp1[j]);
-					add(rdp2[j ^ (1 << i)], rdp2[j]);
-				}
-			}
-			for(int j = 0; j < 1 << 16; j++) {
-				rdp1[j] *= rdp2[j];
-				rdp1[j] %= mod;
-			}
-			for(int i = 0; i < 16; i++) {
-				for(int j = 0; j < 1 << 16; j++) if(!(j & (1 << i))){
-					add(rdp1[j ^ (1 << i)], mod - rdp1[j]);
-				}
-			}
-			for(int j = 0; j < 1 << 16; j++)
-				add(dp[a][j], rdp1[j]);
-		}
+		rans[i] = *it;
+		st = *it + 1;
+		s[cate].erase(it);
+	}
+	if(ranscnt < anscnt) {
+		anscnt = ranscnt;
+		memcpy(ans, rans, sizeof(ans));
 	}
 }
 
@@ -308,29 +249,26 @@ int main() {
 	__asm__("movl %0, %%esp\n" :: "r"(__p__));
 	#endif //...........................................................................................................
 
-	scanf("%s", str);
-	scanf("%d", &n);
-	int mask = 0, t = 0;
-	memset(orig, -1, sizeof(orig));
+	scanf("%s", in);
+	n = strlen(in);
+	int cntr = 0;
 	for(int i = 0; i < n; i++) {
-		int num = 0;
-		for(int j = 0; j < 4; j++) {
-			int temp;
-			scanf("%d", &temp);
-			num = num + (temp << j);
-		}
-		scanf("%d", orig + num);
-		if(orig[num])
-			t |= 1 << num;
-		mask |= 1 << num;
+		cntr += in[i] == 'R';
 	}
-	dfs(0, strlen(str) - 1);
-	ll ans = 0;
-	for(int i = 0; i < 1 << 16; i++) {
-		if((i & mask) == t)
-			add(ans, dp[0][i]);
+	if(cntr > n - cntr)
+		for(int i = 0; i < n; i++)
+			in[i] = 'R' + 'L' - in[i];
+	justdoit();
+	if(n % 2 == 0) {
+		for(int i = 0; i < n; i++)
+			in[i] = 'R' + 'L' - in[i];
+		justdoit();
 	}
-	cout << ans << endl;
+	printf("%d\n", anscnt);
+	for(int i = 0; i < n; i++) {
+		printf("%d ", ans[i] + 1);
+	}
+	puts("");
 
     return 0;
 }

@@ -77,7 +77,7 @@ typedef map <double, int> mpdi;
 typedef map <int, int> mpii;
 
 const double pi = acos(0.0) * 2.0;
-const long double eps = 1e-10;
+const long double eps = 1e-12;
 const int step[8][2] = {{-1, 0}, {0, 1}, {1, 0}, {0, -1}, {-1, 1}, {1, 1}, {1, -1}, {-1, -1}};
 
 template <class T> inline T abs1(T a) {return a < 0 ? -a : a;}
@@ -199,14 +199,21 @@ void output2(t arr) {
 //....................密..........封..........线..........下..........禁..........止..........hack...............................................
 
 const int maxn = 200100;
-int arr[maxn];
+double arr[maxn];
+double sum[maxn];
 int n;
-int eq[maxn];
-int stat[maxn];
-int cnt[maxn], lcnt;
-int sumpri[maxn * 2];
-vi rg[maxn];
-ll sum[maxn], pcnt[maxn];
+
+double getans(double x) {
+	double minv = 0, maxv = 0, sum = 0;
+	double ans = 0;
+	for(int i = 0; i < n; i++) {
+		sum += arr[i] - x;
+		ans = max1(ans, fabs(sum - minv), fabs(maxv - sum));
+		maxv = max(maxv, sum);
+		minv = min(minv, sum);
+	}
+	return ans;
+}
 
 int main() {
 
@@ -222,68 +229,19 @@ int main() {
 
 	scanf("%d", &n);
 	for(int i = 0; i < n; i++)
-		scanf("%d", arr + i);
+		scanf("%lf", arr + i);
 
-	for(int i = 1; i < n; i++) if(n % i == 0){
-		bool flag = 1;
-		for(int j = 0; j < i && flag; j++)
-			for(int k = j; k + i < n && flag; k += i) {
-				if(arr[k] != arr[k + i])
-					flag = 0;
-			}
-		eq[i] = flag;
+	long double l = -10000, r = 10000;
+	int cnt = 0;
+	while(fabs(r - l) > eps) {
+		long double mid1 = (r - l) / 3 + l, mid2 = (r - l) / 3 * 2 + l;
+		if(getans(mid1) < getans(mid2))
+			r = mid2;
+		else l = mid1;
+		cnt++;
 	}
-	ll ans = 0;
-	for(int i = 1; i < n; i++) {
-		int prg = __gcd(i, n);
-		rg[prg].push_back(i);
-	}
-	for(int i = 1; i < n; i++) if(n % i == 0){
-		memset(sum, 0, sizeof(sum));
-		memset(pcnt, 0, sizeof(pcnt));
-		for(int j = 0; j < (int)rg[i].size(); j++) {
-			sum[rg[i][j]] = rg[i][j];
-			pcnt[rg[i][j]] = 1;
-		}
-		for(int j = 1; j < n; j++) {
-			sum[j] +=  sum[j - 1];
-			pcnt[j] += pcnt[j - 1];
-		}
-
-		if(eq[i]) {
-			ans += 1ll * n * pcnt[n - 1];
-			continue;
-		}
-
-		memset(stat, 0, sizeof(stat));
-		for(int j = 0; j < i; j++) {
-			int maxv = -1;
-			lcnt = 0;
-			for(int k = j; k < n; k += i) {
-				if(arr[k] > maxv) {
-					lcnt = 0;
-					cnt[lcnt++] = k;
-					maxv = arr[k];
-				} else if(arr[k] == maxv)
-					cnt[lcnt++] = k;
-			}
-			for(int k = 0; k < lcnt; k++)
-				stat[cnt[k]] = 1;
-		}
-		for(int i = 0; i < n; ) {
-			if(stat[i]) {
-				i++;
-				continue;
-			}
-			int nxt = i + 1;
-			while(stat[nxt % n])
-				nxt++;
-			int l = nxt - i - 1;
-			ans += 1ll * (l + 1) * pcnt[l] - sum[l];
-			i = nxt;
-		}
-	}
-	cout << ans << endl;
+	cerr << cnt << endl;
+	printf("%.10f\n", getans(l));
 
     return 0;
 }

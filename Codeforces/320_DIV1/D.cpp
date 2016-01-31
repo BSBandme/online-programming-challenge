@@ -104,7 +104,7 @@ t max1(t a, arg... arr) { return max1(a, max1(arr...)); }
 
 inline int jud(double a, double b){
 	if(abs(a) < eps && abs(b) < eps) return 0;
-	else if(abs1(a - b) / max(abs1(a), abs1(b)) < eps) return 0;
+	else if(abs1(a - b) / abs1(a) < eps) return 0;
 	if(a < b) return -1;
 	return 1;
 }
@@ -198,16 +198,74 @@ void output2(t arr) {
 
 //....................密..........封..........线..........下..........禁..........止..........hack...............................................
 
-const int mod = MOD;
-const int maxn = 5010;
-int p, mi;
-ll dp[2][maxn][2][2][2];
-ll num[maxn], lnum;
+const int maxn = 100010;
+ll dp[maxn][10];
 char str[maxn];
-int lstr;
+int l, m;
+
+inline int getnxt(int no, char ch, int cate) {
+	if(cate == 0) {
+		if(str[no] == ch)
+			return 0;
+		else if(str[no + 1] == ch)
+			return 4;
+		else return 1;
+	}  else if(cate == 1) {
+		if(str[no - 1] != ch) {
+			if(str[no] == ch)
+				return 3;
+			else
+				return 5;
+		} else
+			return 1;
+	} else if(cate == 2) {
+		if(str[no + 1] != ch)
+			return 3;
+		else
+			return 2;
+	} else if(cate == 3) {
+		if(str[no] != ch) return 5;
+		return 3;
+	} else if(cate == 4) {
+		if(str[no - 1] == ch) {
+			if(str[no + 1] != ch)
+				return 6;
+			else return 4;
+		} else {
+			if(str[no] == ch) {
+				if(str[no + 1] == ch)
+					return 7;
+				else return 3;
+			} else {
+				if(str[no + 1] == ch)
+					return 2;
+				else return 3;
+			}
+		}
+	} else if(cate == 6) {
+		if(str[no - 1] == ch) {
+			if(str[no] != ch)
+				return 1;
+			else return 6;
+		} else {
+			if(str[no] == ch)
+				return 3;
+			else return 5;
+		}
+	} else if(cate == 7) {
+		if(str[no] == ch) {
+			if(str[no + 1] != ch)
+				return 3;
+			else return 7;
+		} else {
+			if(str[no + 1] != ch)
+				return 3;
+			else return 2;
+		}
+	} else return 5;
+}
 
 int main() {
-
 
 //............................不要再忘了检查maxn大小了！！！！BSBandme你个SB！！！！...................................................
 
@@ -219,90 +277,19 @@ int main() {
 	__asm__("movl %0, %%esp\n" :: "r"(__p__));
 	#endif //...........................................................................................................
 
-	scanf("%d%d%s", &p, &mi, str);
-	if(mi > maxn) {
-		puts("0");
-		return 0;
-	}
-	lstr = strlen(str);
-	int lnum = 1;
-	for(int i = 0; i < lstr; i++) {
-		for(int j = 0; j < lnum; j++)
-			num[j] *= 10;
-		num[0] += str[i] - '0';
-		for(int i = 0, jin = 0; i < lnum || jin; i++, lnum = max(i, lnum)) {
-			num[i] += jin;
-			jin = num[i] / p;
-			num[i] %= p;
+	scanf("%d%d", &l, &m);
+	scanf("%s", str);
+	dp[0][0] = 1;
+	for(int i = 0; i < l; i++) {
+		for(int a = 0; a < 8; a++) if(dp[i][a]) {
+			for(int j = 0; j < m; j++) {
+				char ch = 'a' + j;
+				int p = getnxt(i, ch, a);
+				dp[i + 1][p] += dp[i][a];
+			}
 		}
 	}
-	int now = 0, nxt = 1;
-	dp[now][0][0][0][0] = 1;
-	for (int i = lnum - 1; i >= 0; i--) {
-		memset(dp[nxt], 0, sizeof(dp[nxt]));
-		for (int j = 0; j < lnum - i; j++) {
-			add(dp[nxt][j][0][0][0], dp[now][j][0][0][0] % mod);
-			add(dp[nxt][j][1][0][0], dp[now][j][0][0][0] * num[i] % mod);
-			add(dp[nxt][j][0][1][0], dp[now][j][0][0][0] * num[i] % mod);
-			add(dp[nxt][j][1][1][0], dp[now][j][0][0][0] * num[i] % mod * (num[i] - 1) % mod * ((MOD + 1) / 2) % mod);
-			add(dp[nxt][j + 1][0][1][1], dp[now][j][0][0][0] * num[i] % mod);
-			add(dp[nxt][j + 1][1][1][1], dp[now][j][0][0][0] * num[i] % mod * (num[i] - 1) % mod * ((MOD + 1) / 2) % mod);
-
-			add(dp[nxt][j + 1][0][1][1], dp[now][j][0][1][0] * num[i] % mod);
-			add(dp[nxt][j][0][1][0], dp[now][j][0][1][0] * (num[i] + 1) % mod);
-			add(dp[nxt][j + 1][1][1][1], dp[now][j][0][1][0] * num[i] % mod * (num[i] - 1) % mod * ((MOD + 1) / 2) % mod);
-			add(dp[nxt][j][1][1][0], dp[now][j][0][1][0] * num[i] % mod * (num[i] + 1) % mod * ((MOD + 1) / 2) % mod);
-			add(dp[nxt][j + 1][0][1][1], dp[now][j][0][1][1] * (p - num[i]) % mod);
-			add(dp[nxt][j][0][1][0], dp[now][j][0][1][1] * (p - (num[i] + 1)) % mod);
-			add(dp[nxt][j + 1][1][1][1], dp[now][j][0][1][1] * (p - num[i] + 1 + p) % mod * (num[i]) % mod * ((MOD + 1) / 2) % mod);
-			add(dp[nxt][j][1][1][0], dp[now][j][0][1][1] * (p - num[i] + p - 1) % mod * (num[i]) % mod * ((MOD + 1) / 2) % mod);
-
-			add(dp[nxt][j][1][0][0], dp[now][j][1][0][0] * p % mod);
-			add(dp[nxt][j][1][1][0], dp[now][j][1][0][0] * p % mod * (p - 1) % mod * ((MOD + 1) / 2) % mod);
-			add(dp[nxt][j + 1][1][1][1], dp[now][j][1][0][0] * p % mod * (p - 1) % mod* ((MOD + 1) / 2) % mod);
-
-			add(dp[nxt][j + 1][1][1][1], dp[now][j][1][1][0] * p % mod * (p - 1) % mod * ((MOD + 1) / 2) % mod);
-			add(dp[nxt][j][1][1][0], dp[now][j][1][1][0] * p % mod * (p + 1) % mod * ((MOD + 1) / 2) % mod);
-			add(dp[nxt][j + 1][1][1][1], dp[now][j][1][1][1] * p % mod * (p + 1) % mod * ((MOD + 1) / 2) % mod);
-			add(dp[nxt][j][1][1][0], dp[now][j][1][1][1] * p % mod * (p - 1) % mod * ((MOD + 1) / 2) % mod);
-		}
-		swap(now, nxt);
-
-	}
-//			for(int t = 0; t < 2; t++) for(int k = 0; k < 2; k++) for(int m = 0; m < 2; m++) if(dp[now][j][t][k][m]) {
-//				if(t == 0) {
-//					if(k == 0) {
-//						assert(m == 0);
-//						add(dp[nxt][j][0][0][0], dp[now][j][0][0][m] % mod);
-//						add(dp[nxt][j][1][0][0], dp[now][j][0][0][m] * num[i] % mod);
-//						add(dp[nxt][j][0][1][0], dp[now][j][0][0][m] * num[i] % mod);
-//						add(dp[nxt][j][1][1][0], dp[now][j][0][0][m] * num[i] % mod * (num[i] - 1) % mod * ((MOD + 1) / 2) % mod);
-//						add(dp[nxt][j][0][1][1], dp[now][j][0][0][m] * num[i] % mod);
-//						add(dp[nxt][j][1][1][1], dp[now][j][0][0][m] * num[i] % mod * (num[i] - 1) % mod * ((MOD + 1) / 2) % mod);
-//						continue;
-//					} else {
-//						if(m == 0) {
-//							add(dp[nxt][j][0][1][1], dp[now][j][0][1][m] * num[i] % mod);
-//							add(dp[nxt][j][0][1][0], dp[now][j][0][1][m] * (num[i] + 1) % mod);
-//						} else {
-//							add(dp[nxt][j][0][1][1], dp[now][j][0][1][m] * num[i])
-//						}
-//						for(int nxtm = 0; nxtm < 2; nxtm++) {
-//
-//						}
-//					}
-//				} else {
-//
-//				}
-//
-//			}
-//		swap(now, nxt);
-//	}
-	ll ans = 0;
-	for(int rj = mi; rj < maxn; rj++)
-		for(int i = 0; i < 2; i++) for(int j = 0; j < 2; j++)
-			add(ans, dp[now][rj][i][j][0]);
-	cout << ans << endl;
+	cout << dp[l][3] + dp[l][1] + dp[l][6] << endl;
 
     return 0;
 }
