@@ -368,6 +368,7 @@ int main() {
 		}
 	sgt.build(1, 0, nq - 1);
 	sgt.getans(1);
+	// add
 
     return 0;
 }
