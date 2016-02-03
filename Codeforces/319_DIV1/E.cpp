@@ -368,7 +368,10 @@ int main() {
 		}
 	sgt.build(1, 0, nq - 1);
 	sgt.getans(1);
+<<<<<<< HEAD
 	// adadf23
+=======
+>>>>>>> 0f94ea8c888a347ae59037650d82c964d1fc6b6b
 
     return 0;
 }
