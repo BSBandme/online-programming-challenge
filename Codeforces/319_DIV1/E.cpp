@@ -366,7 +366,11 @@ int main() {
 			fa[i][j] = j;
 			sz[i][j] = 1;
 		}
+<<<<<<< HEAD
 	sgt.build(1, 0, nq-1);
+=======
+	sgt.build(1, 0, nq-1); 
+>>>>>>> 350063a75de88839a057a88a9cb8fadcce143b7c
 	sgt.getans(1);
 
     return 0;
